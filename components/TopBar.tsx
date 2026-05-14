@@ -3,7 +3,7 @@
 import { useUser, USERS } from "@/context/UserContext";
 
 export default function TopBar() {
-  const { activeUser, setActiveUser, clearUser } = useUser();
+  const { activeUser, setActiveUser } = useUser();
 
   if (!activeUser) return null;
 
