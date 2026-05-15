@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import UserSelector from "@/components/UserSelector";
 import Sidebar, { SidebarContent } from "@/components/Sidebar";
+import RightPanel from "@/components/RightPanel";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { activeUser, isLoading } = useUser();
@@ -61,9 +62,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 max-w-5xl w-full">
+        <main className="flex-1 p-4 lg:p-8">
           {children}
         </main>
+      </div>
+
+      {/* Right panel — desktop only */}
+      <div className="hidden xl:block">
+        <RightPanel />
       </div>
     </div>
   );

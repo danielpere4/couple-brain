@@ -41,7 +41,10 @@ export default function CategoryPieChart({ data }: Props) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(v) => [`$${Number(v).toFixed(2)}`, ""]}
+          formatter={(v) => [
+            `$${Number(v).toLocaleString("es-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            ""
+          ]}
           contentStyle={{
             borderRadius: "10px",
             border: "none",

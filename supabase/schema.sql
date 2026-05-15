@@ -3,7 +3,8 @@ create table movimientos (
   id uuid primary key default gen_random_uuid(),
   tipo text check (tipo in ('gasto', 'ingreso')),
   monto decimal not null,
-  moneda text default 'USD',
+  moneda text default 'USD',   -- USD | COP | VES
+  cuenta text,                  -- Binance | Zelle | PayPal | Bolívares | Bancolombia
   categoria text,
   descripcion text,
   usuario_id int,
