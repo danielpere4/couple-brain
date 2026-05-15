@@ -6,6 +6,7 @@ import Link from "next/link";
 import { TrendingDown, TrendingUp, Wallet, Scale, Search } from "lucide-react";
 import { useUser, USERS } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase";
+import { useTasas } from "@/context/TasasContext";
 
 const CategoryPieChart = dynamic(
   () => import("@/components/charts/CategoryPieChart"),
@@ -20,6 +21,7 @@ type Movimiento = {
   id: string;
   tipo: "gasto" | "ingreso";
   monto: number;
+  moneda: string;
   categoria: string;
   descripcion: string;
   usuario_id: number;
@@ -98,6 +100,7 @@ const FILTER_TABS = [
 
 export default function DashboardPage() {
   const { activeUser } = useUser();
+  const { toUSD } = useTasas();
   const [greeting, setGreeting] = useState("Hola");
   const [dateStr, setDateStr] = useState("");
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
@@ -139,8 +142,8 @@ export default function DashboardPage() {
 
   const gastos = movimientos.filter(m => m.tipo === "gasto");
   const ingresos = movimientos.filter(m => m.tipo === "ingreso");
-  const totalGastos = gastos.reduce((s, m) => s + m.monto, 0);
-  const totalIngresos = ingresos.reduce((s, m) => s + m.monto, 0);
+  const totalGastos = gastos.reduce((s, m) => s + toUSD(m.monto, m.moneda), 0);
+  const totalIngresos = ingresos.reduce((s, m) => s + toUSD(m.monto, m.moneda), 0);
   const balance = totalIngresos - totalGastos;
   const totalDeudas = deudas.reduce((s, d) => s + d.monto, 0);
 
@@ -150,7 +153,7 @@ export default function DashboardPage() {
   const categoryData = Object.entries(
     gastos.reduce<Record<string, number>>((acc, m) => {
       const k = m.categoria || "Otro";
-      acc[k] = (acc[k] ?? 0) + m.monto;
+      acc[k] = (acc[k] ?? 0) + toUSD(m.monto, m.moneda);
       return acc;
     }, {})
   ).map(([name, value]) => ({ name, value }));

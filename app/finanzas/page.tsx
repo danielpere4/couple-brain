@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Plus, Trash2, TrendingDown, TrendingUp, X, Wallet } from "lucide-react";
+import { Plus, Trash2, TrendingDown, TrendingUp, X, Wallet, Pencil, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useUser, USERS } from "@/context/UserContext";
+import { useTasas } from "@/context/TasasContext";
 
 const CategoryPieChart = dynamic(
   () => import("@/components/charts/CategoryPieChart"),
@@ -77,6 +78,7 @@ function CuentaBadge({ cuentaKey }: { cuentaKey: string }) {
 
 export default function FinanzasPage() {
   const { activeUser } = useUser();
+  const { toUSD, VES, COP, lastUpdate, setTasa } = useTasas();
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -87,6 +89,10 @@ export default function FinanzasPage() {
   const [descripcion, setDescripcion] = useState("");
   const [cuenta, setCuenta] = useState<string>(CUENTAS[0].key);
   const [saving, setSaving] = useState(false);
+
+  const [editingTasas, setEditingTasas] = useState(false);
+  const [editVES, setEditVES] = useState("");
+  const [editCOP, setEditCOP] = useState("");
 
   async function fetchMovimientos() {
     setLoading(true);
@@ -143,13 +149,13 @@ export default function FinanzasPage() {
 
   const gastos = movimientos.filter(m => m.tipo === "gasto");
   const ingresos = movimientos.filter(m => m.tipo === "ingreso");
-  const totalGastos = gastos.reduce((s, m) => s + m.monto, 0);
-  const totalIngresos = ingresos.reduce((s, m) => s + m.monto, 0);
+  const totalGastos = gastos.reduce((s, m) => s + toUSD(m.monto, m.moneda), 0);
+  const totalIngresos = ingresos.reduce((s, m) => s + toUSD(m.monto, m.moneda), 0);
   const balance = totalIngresos - totalGastos;
 
   const categoryData = Object.entries(
     gastos.reduce<Record<string, number>>((acc, m) => {
-      const k = m.categoria || "Otro"; acc[k] = (acc[k] ?? 0) + m.monto; return acc;
+      const k = m.categoria || "Otro"; acc[k] = (acc[k] ?? 0) + toUSD(m.monto, m.moneda); return acc;
     }, {})
   ).map(([name, value]) => ({ name, value }));
 
@@ -182,6 +188,62 @@ export default function FinanzasPage() {
         >
           <Plus className="w-4 h-4" /> Nuevo
         </button>
+      </div>
+
+      {/* Barra de tasas */}
+      <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex flex-wrap items-center gap-3">
+        {editingTasas ? (
+          <>
+            <span className="text-xs font-semibold text-gray-500">1 USD =</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400">Bs.</span>
+              <input
+                type="number" value={editVES} onChange={e => setEditVES(e.target.value)}
+                className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-violet-300"
+                placeholder={String(VES)}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400">COP $</span>
+              <input
+                type="number" value={editCOP} onChange={e => setEditCOP(e.target.value)}
+                className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-violet-300"
+                placeholder={String(COP)}
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (editVES && parseFloat(editVES) > 0) setTasa("VES", parseFloat(editVES));
+                if (editCOP && parseFloat(editCOP) > 0) setTasa("COP", parseFloat(editCOP));
+                setEditingTasas(false);
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-white"
+              style={{ backgroundColor: activeUser?.color ?? "#7C3AED" }}
+            >
+              <Check className="w-3 h-3" /> Guardar
+            </button>
+            <button onClick={() => setEditingTasas(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancelar</button>
+          </>
+        ) : (
+          <>
+            <span className="text-xs text-gray-400">1 USD =</span>
+            <span className="text-xs font-bold text-gray-700">Bs. {VES > 0 ? VES.toLocaleString() : "—"}</span>
+            <span className="text-gray-200">·</span>
+            <span className="text-xs font-bold text-gray-700">COP ${COP > 0 ? COP.toLocaleString() : "—"}</span>
+            {lastUpdate && (
+              <>
+                <span className="text-gray-200">·</span>
+                <span className="text-[11px] text-gray-400">{lastUpdate}</span>
+              </>
+            )}
+            <button
+              onClick={() => { setEditVES(String(VES)); setEditCOP(String(COP)); setEditingTasas(true); }}
+              className="ml-auto flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Pencil className="w-3 h-3" /> Editar tasas
+            </button>
+          </>
+        )}
       </div>
 
       {/* Cards de resumen — mismo estilo que el dashboard */}

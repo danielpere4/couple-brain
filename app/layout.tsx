@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import { TasasProvider } from "@/context/TasasContext";
 import AppShell from "@/components/AppShell";
 
 const geistSans = localFont({
@@ -41,7 +42,9 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} font-[family-name:var(--font-geist-sans)] antialiased`}>
         <UserProvider>
-          <AppShell>{children}</AppShell>
+          <TasasProvider>
+            <AppShell>{children}</AppShell>
+          </TasasProvider>
         </UserProvider>
       </body>
     </html>
