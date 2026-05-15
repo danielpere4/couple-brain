@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Plus, Trash2, TrendingDown, TrendingUp, X, Wallet, Scale } from "lucide-react";
+import { Plus, Trash2, TrendingDown, TrendingUp, X, Wallet } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useUser, USERS } from "@/context/UserContext";
 
@@ -40,7 +40,6 @@ const CUENTAS = [
   { key: "Efectivo COP",   color: "#B45309", label: "$", bg:  "#FFFBEB", moneda: "COP", simbolo: "COP$" },
 ] as const;
 
-type Cuenta = typeof CUENTAS[number];
 
 function fmt(n: number) {
   return n.toLocaleString("es-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -86,7 +85,7 @@ export default function FinanzasPage() {
   const [monto, setMonto] = useState("");
   const [categoria, setCategoria] = useState(CATEGORIAS_GASTO[0]);
   const [descripcion, setDescripcion] = useState("");
-  const [cuenta, setCuenta] = useState(CUENTAS[0].key);
+  const [cuenta, setCuenta] = useState<string>(CUENTAS[0].key);
   const [saving, setSaving] = useState(false);
 
   async function fetchMovimientos() {
@@ -366,7 +365,7 @@ export default function FinanzasPage() {
                     <p className="text-sm font-semibold text-gray-800 truncate">{m.descripcion || m.categoria || "Sin descripción"}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-xs text-gray-400">{m.categoria}</span>
-                      <CuentaBadge moneda={m.moneda} />
+                      <CuentaBadge cuentaKey={m.cuenta || m.moneda} />
                       {user && <span className="text-[10px] font-bold" style={{ color: user.color }}>{user.name}</span>}
                     </div>
                   </div>
